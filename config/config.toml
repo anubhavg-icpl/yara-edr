@@ -13,7 +13,7 @@ workers = 0
 
 [rules]
 # Paths to search for YARA rules
-paths = ["/etc/yara-edr/rules", "./rules"]
+paths = ["./rules"]
 # Enable automatic rule reloading
 auto_reload = true
 # Interval in seconds between rule reload checks
