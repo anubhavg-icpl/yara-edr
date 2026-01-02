@@ -7,4 +7,4 @@ pub mod rules;
 pub mod scanner;
 
 pub use rules::RuleManager;
-pub use scanner::{ScanResult, Scanner, YaraMatch};
+pub use scanner::{ScanResult, ScanType, Scanner, YaraMatch};
