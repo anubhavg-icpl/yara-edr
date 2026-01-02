@@ -1,7 +1,7 @@
 [package]
 name = "yara-edr"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 authors = ["Anubhav"]
 description = "A YARA-powered Endpoint Detection and Response agent for Linux"
 license = "MIT"
