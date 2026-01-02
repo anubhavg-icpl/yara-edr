@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  # Production build
+  yara-edr:
+    build:
+      context: .
+      target: runtime
+    image: yara-edr:latest
+    container_name: yara-edr
+    volumes:
+      - ./rules:/etc/yara-edr/rules:ro
+      - ./config/config.toml:/etc/yara-edr/config.toml:ro
+      - quarantine:/var/lib/yara-edr/quarantine
+      - logs:/var/log/yara-edr
+      # Mount directory to scan
+      - /tmp/scan:/scan:ro
+    command: ["-c", "/etc/yara-edr/config.toml", "scan", "/scan"]
+
+  # Development environment
+  dev:
+    build:
+      context: .
+      target: development
+    image: yara-edr:dev
+    container_name: yara-edr-dev
+    volumes:
+      - .:/app
+      - cargo-cache:/usr/local/cargo/registry
+      - target-cache:/app/target
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: ["bash"]
+
+volumes:
+  quarantine:
+  logs:
+  cargo-cache:
+  target-cache:
