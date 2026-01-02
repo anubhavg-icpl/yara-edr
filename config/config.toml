@@ -1,0 +1,78 @@
+# YARA-EDR Configuration File
+# Linux Endpoint Detection and Response Agent
+
+[general]
+# Log level: trace, debug, info, warn, error
+log_level = "info"
+# Path to log file
+log_file = "/var/log/yara-edr/edr.log"
+# PID file for daemon mode
+pid_file = "/var/run/yara-edr.pid"
+# Number of worker threads (0 = auto-detect)
+workers = 0
+
+[rules]
+# Paths to search for YARA rules
+paths = ["/etc/yara-edr/rules", "./rules"]
+# Enable automatic rule reloading
+auto_reload = true
+# Interval in seconds between rule reload checks
+reload_interval = 300
+# Scan timeout in seconds
+scan_timeout = 60
+
+[file_monitor]
+# Enable file monitoring
+enabled = true
+# Paths to watch for file changes
+watch_paths = ["/home", "/tmp", "/var/tmp", "/opt"]
+# Enable recursive watching
+recursive = true
+# File extensions to scan (empty = all files)
+extensions = ["exe", "dll", "so", "sh", "py", "pl", "rb", "bin", "elf"]
+# Patterns to exclude from scanning
+exclude_patterns = ["/proc/*", "/sys/*", "/dev/*", "*.log", "*.tmp"]
+# Maximum file size to scan in bytes (0 = unlimited)
+max_file_size = 104857600  # 100 MB
+# Debounce time in milliseconds for file events
+debounce_ms = 500
+
+[process_monitor]
+# Enable process monitoring
+enabled = true
+# Scan processes on execution
+scan_on_exec = true
+# Interval in seconds for periodic process scanning
+scan_interval = 3600
+# Enable memory scanning
+memory_scan = true
+# Scan command line arguments
+scan_cmdline = true
+# PIDs to exclude from scanning
+exclude_pids = []
+# Process names to exclude from scanning
+exclude_names = ["systemd", "init", "kthreadd"]
+
+[response]
+# Path to quarantine directory
+quarantine_path = "/var/lib/yara-edr/quarantine"
+# Automatically quarantine detected files
+auto_quarantine = false
+# Automatically kill detected processes
+auto_kill = false
+# Preserve file metadata in quarantine
+preserve_metadata = true
+# Maximum quarantine size in bytes (0 = unlimited)
+max_quarantine_size = 0
+
+[alerts]
+# Alert output type: file, stdout, syslog
+output = "file"
+# Path to alerts file (when output = file)
+file_path = "/var/log/yara-edr/alerts.json"
+# Include matched data in alerts
+include_match_data = true
+# Maximum match data length to include
+max_match_data = 256
+# Alert severity threshold: info, low, medium, high, critical
+severity_threshold = "info"
