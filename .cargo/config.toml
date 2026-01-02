@@ -1,0 +1,13 @@
+# Cargo configuration for yara-edr
+
+[env]
+# Add /usr/local/lib to library search path for YARA
+LIBRARY_PATH = { value = "/usr/local/lib", force = true }
+
+[build]
+# Use all available CPU cores (comment out to use default)
+# jobs = 8
+
+[target.x86_64-unknown-linux-gnu]
+# Linker flags for YARA library
+rustflags = ["-L", "/usr/local/lib"]
