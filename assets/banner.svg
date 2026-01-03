@@ -144,7 +144,7 @@
           <text x="45" y="14" font-family="monospace" font-size="11" fill="#94a3b8" font-weight="500" text-anchor="middle">safe</text>
         </g>
 
-        <!-- Rules badge: "1600+" (40px) + "rules" (38px) = 78px total -->
+        <!-- Rules badge: "1750+" (40px) + "rules" (38px) = 78px total -->
         <g transform="translate(68, 0)">
           <!-- Left section: colored background -->
           <rect x="0" y="0" width="40" height="20" rx="4" ry="4" fill="#059669"/>
@@ -155,7 +155,7 @@
           <!-- Border -->
           <rect x="0" y="0" width="78" height="20" rx="4" ry="4" fill="none" stroke="#334155" stroke-width="1"/>
           <!-- Text - centered in each section -->
-          <text x="20" y="14" font-family="monospace" font-size="11" fill="#ffffff" font-weight="600" text-anchor="middle">1600+</text>
+          <text x="20" y="14" font-family="monospace" font-size="11" fill="#ffffff" font-weight="600" text-anchor="middle">1750+</text>
           <text x="59" y="14" font-family="monospace" font-size="11" fill="#94a3b8" font-weight="500" text-anchor="middle">rules</text>
         </g>
 

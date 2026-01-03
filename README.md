@@ -13,7 +13,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/rust-stable-orange?logo=rust" alt="Rust"/>
   <img src="https://img.shields.io/badge/platform-linux-blue?logo=linux&logoColor=white" alt="Linux"/>
-  <img src="https://img.shields.io/badge/rules-1600+-green" alt="Rules"/>
+  <img src="https://img.shields.io/badge/rules-1750+-green" alt="Rules"/>
   <img src="https://img.shields.io/badge/license-MIT-purple" alt="License"/>
 </p>
 
@@ -26,7 +26,7 @@ A fast, lightweight Endpoint Detection and Response (EDR) agent for Linux, power
 - **Real-time File Monitoring** - inotify-based file system monitoring with configurable watch paths
 - **On-demand Scanning** - Scan files, directories, or entire filesystems
 - **Process Scanning** - Scan running processes and their memory
-- **1600+ Detection Rules** - Comprehensive Linux malware detection out of the box
+- **1750+ Detection Rules** - Comprehensive Linux malware and threat detection out of the box
 - **Quarantine System** - Isolate detected threats with metadata preservation
 - **Configurable Responses** - Auto-quarantine, process termination, alerts
 - **Low Resource Usage** - Efficient Rust implementation with minimal overhead
@@ -266,28 +266,40 @@ severity_threshold = "info"
 
 ## Detection Rules
 
-YARA-EDR comes with 1600+ detection rules organized by source:
+YARA-EDR comes with 1750+ detection rules organized by category:
+
+### Rule Files
 
 | File | Rules | Description |
 |------|-------|-------------|
-| `elastic_linux.yar` | 869 | Elastic Security Linux rules |
-| `toolkit.yar` | 659 | Hacking/pentesting tool detection |
+| `elastic_linux.yar` | 869 | Elastic Security Linux malware rules |
+| `toolkit.yar` | 659 | Hacking and pentesting tool detection |
 | `malwatch.yar` | 32 | Webshells, backdoors, PHP malware |
+| `linux_privesc.yar` | 27 | Privilege escalation exploits and tools |
+| `linux_apt.yar` | 25 | APT and nation-state malware |
+| `linux_container.yar` | 25 | Container escapes and cloud attacks |
+| `linux_exploits.yar` | 24 | Exploit frameworks and C2 tools |
+| `linux_botnet.yar` | 21 | Botnets, worms, and DDoS tools |
+| `linux_credentials.yar` | 19 | Credential theft and dumping |
 | `community_linux.yar` | 18 | Community Linux/ELF malware rules |
+| `linux_fileless.yar` | 16 | Fileless and memory-only attacks |
 | `linux.yar` | 16 | Custom Linux threat detection |
 | `default.yar` | 5 | EICAR test file and base rules |
 
 ### Detection Categories
 
-- **Trojans** - XorDDoS, Mirai, Tsunami, BPFDoor, Winnti, etc.
-- **Exploits** - Dirty Cow, Dirty Pipe, PwnKit, Sudo exploits, etc.
-- **Cryptominers** - XMRig, various cryptocurrency miners
-- **Rootkits** - Kernel rootkits, LD_PRELOAD injection
+- **APT/Nation-State** - APT28, APT29, Lazarus, APT41, Turla, Sandworm
+- **Kernel Exploits** - DirtyPipe, DirtyCow, PwnKit, Baron Samedit, StackRot
+- **Container Security** - Docker escapes, Kubernetes attacks, cloud metadata SSRF
+- **C2 Frameworks** - Cobalt Strike, Metasploit, Sliver, Havoc, Mythic
+- **Credential Theft** - mimipenguin, LaZagne, SSH key theft, keyloggers
+- **Botnets** - Mirai variants, Gafgyt, Hajime, XOR.DDoS, Kaiten
+- **Fileless Attacks** - memfd_create, /dev/shm execution, LOLBins
+- **Cryptominers** - XMRig, cryptomining botnets
+- **Rootkits** - Kernel modules, LD_PRELOAD, eBPF-based
 - **Ransomware** - Linux ransomware variants
-- **Backdoors** - TinyShell, Fontonlake, reverse shells
-- **Webshells** - PHP webshells, obfuscated code
-- **Botnets** - Mirai variants (Satori, Okiru), Tsunami
-- **Persistence** - Cron persistence, systemd abuse
+- **Webshells** - PHP webshells, China Chopper, obfuscated code
+- **Privilege Escalation** - SUID abuse, sudo misconfig, capability abuse
 
 ### Adding Custom Rules
 
