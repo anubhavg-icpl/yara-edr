@@ -81,21 +81,36 @@
     Linux Endpoint Detection &amp; Response
   </text>
 
-  <!-- Version badge -->
+  <!-- Badges row - mathematically aligned -->
   <g transform="translate(115, 92)">
-    <rect x="0" y="0" width="55" height="18" rx="9" fill="#e2e8f0"/>
-    <rect x="0" y="0" width="25" height="18" rx="9" fill="#4f46e5"/>
-    <path d="M25 0 L25 18 L16 18 L16 0 Z" fill="#4f46e5"/>
-    <text x="7" y="13" font-family="monospace" font-size="10" fill="#fff" font-weight="600">rust</text>
-    <text x="32" y="13" font-family="monospace" font-size="10" fill="#475569">safe</text>
-  </g>
+    <!--
+      Badge dimensions:
+      - Height: 18px
+      - Border radius: 4px
+      - Font: 10px monospace
+      - Text baseline: y = 13 (18/2 + 10/3 ≈ 9 + 3.3)
+    -->
 
-  <!-- Performance badge -->
-  <g transform="translate(178, 92)">
-    <rect x="0" y="0" width="72" height="18" rx="9" fill="#e2e8f0"/>
-    <rect x="0" y="0" width="38" height="18" rx="9" fill="#059669"/>
-    <path d="M38 0 L38 18 L29 18 L29 0 Z" fill="#059669"/>
-    <text x="6" y="13" font-family="monospace" font-size="10" fill="#fff" font-weight="600">1600+</text>
-    <text x="44" y="13" font-family="monospace" font-size="10" fill="#475569">rules</text>
+    <!-- Rust badge: 55px total (26px + 29px) -->
+    <g>
+      <rect x="0" y="0" width="26" height="18" rx="4" ry="4" fill="#4f46e5"/>
+      <rect x="22" y="0" width="4" height="18" fill="#4f46e5"/>
+      <rect x="26" y="0" width="29" height="18" rx="4" ry="4" fill="#e2e8f0"/>
+      <rect x="26" y="0" width="4" height="18" fill="#e2e8f0"/>
+      <rect x="0" y="0" width="55" height="18" rx="4" ry="4" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="13" y="13" font-family="monospace" font-size="10" fill="#fff" font-weight="600" text-anchor="middle">rust</text>
+      <text x="40.5" y="13" font-family="monospace" font-size="10" fill="#475569" text-anchor="middle">safe</text>
+    </g>
+
+    <!-- Rules badge: 72px total (38px + 34px) -->
+    <g transform="translate(63, 0)">
+      <rect x="0" y="0" width="38" height="18" rx="4" ry="4" fill="#059669"/>
+      <rect x="34" y="0" width="4" height="18" fill="#059669"/>
+      <rect x="38" y="0" width="34" height="18" rx="4" ry="4" fill="#e2e8f0"/>
+      <rect x="38" y="0" width="4" height="18" fill="#e2e8f0"/>
+      <rect x="0" y="0" width="72" height="18" rx="4" ry="4" fill="none" stroke="#cbd5e1" stroke-width="1"/>
+      <text x="19" y="13" font-family="monospace" font-size="10" fill="#fff" font-weight="600" text-anchor="middle">1600+</text>
+      <text x="55" y="13" font-family="monospace" font-size="10" fill="#475569" text-anchor="middle">rules</text>
+    </g>
   </g>
 </svg>
