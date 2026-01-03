@@ -13,7 +13,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/rust-stable-orange?logo=rust" alt="Rust"/>
   <img src="https://img.shields.io/badge/platform-linux-blue?logo=linux&logoColor=white" alt="Linux"/>
-  <img src="https://img.shields.io/badge/rules-1750+-green" alt="Rules"/>
+  <img src="https://img.shields.io/badge/rules-1775+-green" alt="Rules"/>
   <img src="https://img.shields.io/badge/license-MIT-purple" alt="License"/>
 </p>
 
@@ -266,7 +266,7 @@ severity_threshold = "info"
 
 ## Detection Rules
 
-YARA-EDR comes with 1750+ detection rules organized by category:
+YARA-EDR comes with 1775+ detection rules organized by category:
 
 ### Rule Files
 
@@ -279,6 +279,7 @@ YARA-EDR comes with 1750+ detection rules organized by category:
 | `linux_apt.yar` | 25 | APT and nation-state malware |
 | `linux_container.yar` | 25 | Container escapes and cloud attacks |
 | `linux_exploits.yar` | 24 | Exploit frameworks and C2 tools |
+| `linux_advanced.yar` | 22 | BPFDoor, rootkits, RATs, ransomware |
 | `linux_botnet.yar` | 21 | Botnets, worms, and DDoS tools |
 | `linux_credentials.yar` | 19 | Credential theft and dumping |
 | `community_linux.yar` | 18 | Community Linux/ELF malware rules |
@@ -293,13 +294,15 @@ YARA-EDR comes with 1750+ detection rules organized by category:
 - **Container Security** - Docker escapes, Kubernetes attacks, cloud metadata SSRF
 - **C2 Frameworks** - Cobalt Strike, Metasploit, Sliver, Havoc, Mythic
 - **Credential Theft** - mimipenguin, LaZagne, SSH key theft, keyloggers
-- **Botnets** - Mirai variants, Gafgyt, Hajime, XOR.DDoS, Kaiten
+- **Botnets** - Mirai variants, Gafgyt, Hajime, XOR.DDoS, Kaiten, Tsunami
 - **Fileless Attacks** - memfd_create, /dev/shm execution, LOLBins
 - **Cryptominers** - XMRig, cryptomining botnets
-- **Rootkits** - Kernel modules, LD_PRELOAD, eBPF-based
-- **Ransomware** - Linux ransomware variants
+- **Rootkits** - Umbreon, Orbit, eBPF rootkits, LD_PRELOAD
+- **Ransomware** - RansomEXX, HelloKitty, Hive, Linux variants
 - **Webshells** - PHP webshells, China Chopper, obfuscated code
 - **Privilege Escalation** - SUID abuse, sudo misconfig, capability abuse
+- **Advanced Backdoors** - BPFDoor, TinyShell, Rekoobe, GTPDOOR
+- **RATs** - Pupy, CHAOS RAT, cross-platform implants
 
 ### Adding Custom Rules
 
