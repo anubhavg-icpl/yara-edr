@@ -337,27 +337,3 @@ impl BatchScanner {
         Ok(total_summary)
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_scan_summary_display() {
-        let summary = ScanSummary {
-            files_scanned: 100,
-            bytes_scanned: 1024 * 1024 * 50, // 50 MB
-            detections: 3,
-            matched_files: vec!["file1".to_string(), "file2".to_string()],
-            critical: 1,
-            high: 1,
-            medium: 1,
-            low: 0,
-            info: 0,
-        };
-
-        let display = format!("{}", summary);
-        assert!(display.contains("Files scanned: 100"));
-        assert!(display.contains("Detections: 3"));
-    }
-}

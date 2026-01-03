@@ -5,8 +5,8 @@
 pub mod file_scanner;
 pub mod memory_scanner;
 
-pub use file_scanner::FileScanner;
-pub use memory_scanner::MemoryScanner;
+pub use file_scanner::{FileScanner, ScanSummary};
+pub use memory_scanner::{MemoryScanner, ProcessScanSummary};
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -210,26 +210,5 @@ impl Detection {
             .iter()
             .map(|m| m.rule.as_str())
             .collect()
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::engine::ScanType;
-
-    #[test]
-    fn test_severity_ordering() {
-        assert!(Severity::Critical > Severity::High);
-        assert!(Severity::High > Severity::Medium);
-        assert!(Severity::Medium > Severity::Low);
-        assert!(Severity::Low > Severity::Info);
-    }
-
-    #[test]
-    fn test_severity_parse() {
-        assert_eq!(Severity::parse("critical"), Severity::Critical);
-        assert_eq!(Severity::parse("HIGH"), Severity::High);
-        assert_eq!(Severity::parse("unknown"), Severity::Info);
     }
 }

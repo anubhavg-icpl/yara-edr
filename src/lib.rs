@@ -12,6 +12,9 @@ pub mod monitors;
 pub mod response;
 pub mod utils;
 
+// Re-export commonly used items at crate level
+pub use config::Config;
+
 use thiserror::Error;
 
 /// Main error type for YARA-EDR

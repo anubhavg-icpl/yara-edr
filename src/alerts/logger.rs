@@ -266,18 +266,3 @@ pub fn create_summary_report(detections: &[Detection]) -> String {
 
     report
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_severity_threshold() {
-        let threshold = Severity::parse("medium");
-        assert!(Severity::Critical >= threshold);
-        assert!(Severity::High >= threshold);
-        assert!(Severity::Medium >= threshold);
-        assert!(Severity::Low < threshold);
-        assert!(Severity::Info < threshold);
-    }
-}

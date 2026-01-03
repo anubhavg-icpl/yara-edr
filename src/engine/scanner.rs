@@ -440,25 +440,3 @@ mod md5 {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_scan_result_serialization() {
-        let result = ScanResult {
-            target: "/tmp/test".to_string(),
-            scan_type: ScanType::File,
-            matches: vec![],
-            duration_ms: 100,
-            timestamp: chrono::Utc::now(),
-            is_match: false,
-            size: 1024,
-            hashes: None,
-        };
-
-        let json = serde_json::to_string(&result).unwrap();
-        assert!(json.contains("/tmp/test"));
-    }
-}

@@ -47,7 +47,7 @@ pub fn get_process_memory_regions(pid: i32) -> Result<Vec<MemoryRegion>> {
 }
 
 /// Parse a line from /proc/[pid]/maps
-fn parse_maps_line(line: &str) -> Option<MemoryRegion> {
+pub fn parse_maps_line(line: &str) -> Option<MemoryRegion> {
     let parts: Vec<&str> = line.split_whitespace().collect();
 
     if parts.is_empty() {
@@ -233,43 +233,4 @@ pub fn get_child_pids(pid: i32) -> Result<Vec<i32>> {
 /// Check if process is running
 pub fn is_process_running(pid: i32) -> bool {
     PathBuf::from(format!("/proc/{pid}")).exists()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_maps_line() {
-        let line = "7f8b8c000000-7f8b8c021000 rw-p 00000000 00:00 0";
-        let region = parse_maps_line(line).unwrap();
-
-        assert_eq!(region.start, 0x7f8b8c000000);
-        assert_eq!(region.end, 0x7f8b8c021000);
-        assert_eq!(region.permissions, "rw-p");
-    }
-
-    #[test]
-    fn test_parse_maps_line_with_path() {
-        let line = "7f8b8c000000-7f8b8c021000 r-xp 00000000 08:01 123456 /usr/lib/libc.so.6";
-        let region = parse_maps_line(line).unwrap();
-
-        assert_eq!(region.pathname, Some("/usr/lib/libc.so.6".to_string()));
-    }
-
-    #[test]
-    fn test_current_process() {
-        let pid = std::process::id() as i32;
-
-        // Test getting exe
-        let exe = get_process_exe(pid);
-        assert!(exe.is_ok());
-
-        // Test getting cmdline
-        let cmdline = get_process_cmdline(pid);
-        assert!(cmdline.is_ok());
-
-        // Test process is running
-        assert!(is_process_running(pid));
-    }
 }

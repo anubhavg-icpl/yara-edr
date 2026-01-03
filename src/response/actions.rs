@@ -220,7 +220,7 @@ impl ResponseExecutor {
     }
 
     /// Check if a path is protected
-    fn is_protected_path(&self, path: &Path) -> bool {
+    pub fn is_protected_path(&self, path: &Path) -> bool {
         let protected_prefixes = [
             "/bin",
             "/sbin",
@@ -248,7 +248,7 @@ impl ResponseExecutor {
     }
 
     /// Check if a process is protected
-    fn is_protected_process(&self, pid: i32) -> bool {
+    pub fn is_protected_process(&self, pid: i32) -> bool {
         // Never kill init or kernel processes
         if pid <= 2 {
             return true;
@@ -289,30 +289,5 @@ impl ResponseExecutor {
     /// Get quarantine manager
     pub fn quarantine(&self) -> &parking_lot::RwLock<QuarantineManager> {
         &self.quarantine
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_protected_paths() {
-        let config = ResponseConfig::default();
-        let executor = ResponseExecutor::new(config).unwrap();
-
-        assert!(executor.is_protected_path(Path::new("/bin/bash")));
-        assert!(executor.is_protected_path(Path::new("/etc/passwd")));
-        assert!(!executor.is_protected_path(Path::new("/tmp/malware")));
-        assert!(!executor.is_protected_path(Path::new("/home/user/file")));
-    }
-
-    #[test]
-    fn test_protected_processes() {
-        let config = ResponseConfig::default();
-        let executor = ResponseExecutor::new(config).unwrap();
-
-        assert!(executor.is_protected_process(1)); // init
-        assert!(executor.is_protected_process(2)); // kthreadd
     }
 }

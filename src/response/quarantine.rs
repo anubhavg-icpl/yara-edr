@@ -338,35 +338,3 @@ mod md5 {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::TempDir;
-
-    #[test]
-    fn test_quarantine_manager() {
-        let temp_dir = TempDir::new().unwrap();
-        let quarantine_dir = temp_dir.path().join("quarantine");
-
-        let mut manager = QuarantineManager::new(&quarantine_dir).unwrap();
-
-        // Create a test file
-        let test_file = temp_dir.path().join("test.txt");
-        fs::write(&test_file, "test content").unwrap();
-
-        // Quarantine the file
-        let entry = manager.quarantine_file(&test_file).unwrap();
-
-        assert!(!test_file.exists());
-        assert!(entry.quarantine_path.exists());
-        assert_eq!(manager.count(), 1);
-
-        // Restore the file
-        manager.restore(entry.id).unwrap();
-
-        assert!(test_file.exists());
-        assert!(!entry.quarantine_path.exists());
-        assert_eq!(manager.count(), 0);
-    }
-}

@@ -148,7 +148,7 @@ impl FileMonitor {
     }
 
     /// Check if a path matches exclusion patterns
-    fn is_excluded(&self, path: &Path) -> bool {
+    pub fn is_excluded(&self, path: &Path) -> bool {
         let path_str = path.to_string_lossy();
 
         for pattern in &self.config.exclude_patterns {
@@ -163,7 +163,7 @@ impl FileMonitor {
     }
 
     /// Check if a file should be scanned based on extension
-    fn should_scan_file(&self, path: &Path) -> bool {
+    pub fn should_scan_file(&self, path: &Path) -> bool {
         // Check exclusion patterns first
         if self.is_excluded(path) {
             return false;
@@ -358,24 +358,4 @@ pub async fn start_file_monitor(
     monitor.set_event_channel(event_tx);
     monitor.initialize()?;
     monitor.start(shutdown).await
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_should_scan_file() {
-        let config = FileMonitorConfig {
-            extensions: vec!["exe".to_string(), "sh".to_string()],
-            exclude_patterns: vec!["/tmp/*".to_string()],
-            ..Default::default()
-        };
-
-        let monitor = FileMonitor::new(config).unwrap();
-
-        assert!(monitor.should_scan_file(Path::new("/home/test.exe")));
-        assert!(monitor.should_scan_file(Path::new("/home/script.sh")));
-        assert!(!monitor.should_scan_file(Path::new("/home/test.txt")));
-    }
 }

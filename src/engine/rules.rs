@@ -308,22 +308,3 @@ pub async fn start_reload_task(
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_rule_stats_display() {
-        let stats = RuleStats {
-            file_count: 5,
-            rules_loaded: true,
-            auto_reload: true,
-            paths: vec![PathBuf::from("/etc/yara-edr/rules")],
-        };
-
-        let display = format!("{}", stats);
-        assert!(display.contains("Files loaded: 5"));
-        assert!(display.contains("Rules loaded: true"));
-    }
-}

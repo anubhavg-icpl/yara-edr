@@ -91,23 +91,3 @@ pub fn hash_bytes(data: &[u8]) -> FileHashes {
         sha256: sha256_bytes(data),
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_sha256_bytes() {
-        let hash = sha256_bytes(b"hello world");
-        assert_eq!(
-            hash,
-            "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"
-        );
-    }
-
-    #[test]
-    fn test_md5_bytes() {
-        let hash = md5_bytes(b"hello world");
-        assert_eq!(hash, "5eb63bbbe01eeed093cb22bb8f5acdc3");
-    }
-}
