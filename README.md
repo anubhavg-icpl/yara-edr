@@ -1,4 +1,23 @@
-# YARA-EDR
+<p align="center">
+  <img src="assets/banner.svg" alt="YARA-EDR Banner" width="800"/>
+</p>
+
+<p align="center">
+  <a href="#features"><strong>Features</strong></a> ·
+  <a href="#installation"><strong>Installation</strong></a> ·
+  <a href="#quick-start"><strong>Quick Start</strong></a> ·
+  <a href="#configuration"><strong>Configuration</strong></a> ·
+  <a href="#detection-rules"><strong>Rules</strong></a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/rust-stable-orange?logo=rust" alt="Rust"/>
+  <img src="https://img.shields.io/badge/platform-linux-blue?logo=linux&logoColor=white" alt="Linux"/>
+  <img src="https://img.shields.io/badge/rules-1600+-green" alt="Rules"/>
+  <img src="https://img.shields.io/badge/license-MIT-purple" alt="License"/>
+</p>
+
+---
 
 A fast, lightweight Endpoint Detection and Response (EDR) agent for Linux, powered by YARA rules. Written in Rust for maximum performance and safety.
 
