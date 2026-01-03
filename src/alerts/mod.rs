@@ -89,7 +89,7 @@ impl From<Detection> for Alert {
         let actions: Vec<String> = detection
             .recommended_actions
             .iter()
-            .map(|a| format!("{:?}", a))
+            .map(|a| format!("{a:?}"))
             .collect();
 
         Self {

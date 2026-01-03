@@ -46,11 +46,11 @@ impl FileScanner {
 
         // Validate file
         if !path.exists() {
-            return Err(EdrError::Scan(format!("File not found: {:?}", path)));
+            return Err(EdrError::Scan(format!("File not found: {path:?}")));
         }
 
         if !path.is_file() {
-            return Err(EdrError::Scan(format!("Not a file: {:?}", path)));
+            return Err(EdrError::Scan(format!("Not a file: {path:?}")));
         }
 
         // Check file size
@@ -67,7 +67,7 @@ impl FileScanner {
 
         // Check exclusions
         if self.is_excluded(path) {
-            return Err(EdrError::Scan(format!("File excluded: {:?}", path)));
+            return Err(EdrError::Scan(format!("File excluded: {path:?}")));
         }
 
         // Perform scan
@@ -87,10 +87,10 @@ impl FileScanner {
             let detection = Detection::new(result, source);
 
             // Send detection through channel
-            if let Some(tx) = &self.detection_tx {
-                if let Err(e) = tx.send(detection.clone()).await {
-                    error!("Failed to send detection: {}", e);
-                }
+            if let Some(tx) = &self.detection_tx
+                && let Err(e) = tx.send(detection.clone()).await
+            {
+                error!("Failed to send detection: {}", e);
             }
 
             return Ok(Some(detection));
@@ -104,11 +104,11 @@ impl FileScanner {
         let path = path.as_ref();
 
         if !path.exists() {
-            return Err(EdrError::Scan(format!("Directory not found: {:?}", path)));
+            return Err(EdrError::Scan(format!("Directory not found: {path:?}")));
         }
 
         if !path.is_dir() {
-            return Err(EdrError::Scan(format!("Not a directory: {:?}", path)));
+            return Err(EdrError::Scan(format!("Not a directory: {path:?}")));
         }
 
         let mut results = Vec::new();
@@ -119,7 +119,7 @@ impl FileScanner {
             WalkDir::new(path).max_depth(1)
         };
 
-        for entry in walker.into_iter().filter_map(|e| e.ok()) {
+        for entry in walker.into_iter().filter_map(std::result::Result::ok) {
             let entry_path = entry.path();
 
             // Skip directories
@@ -142,10 +142,10 @@ impl FileScanner {
                         );
                     }
                     results.push(result);
-                }
+                },
                 Err(e) => {
                     debug!("Failed to scan {:?}: {}", entry_path, e);
-                }
+                },
             }
         }
 
@@ -182,10 +182,10 @@ impl FileScanner {
                 }
 
                 // Send detection
-                if let Some(tx) = &self.detection_tx {
-                    if let Err(e) = tx.send(detection).await {
-                        error!("Failed to send detection: {}", e);
-                    }
+                if let Some(tx) = &self.detection_tx
+                    && let Err(e) = tx.send(detection).await
+                {
+                    error!("Failed to send detection: {}", e);
                 }
             }
         }
@@ -201,12 +201,11 @@ impl FileScanner {
         }
 
         // Check file size
-        if self.config.max_file_size > 0 {
-            if let Ok(metadata) = std::fs::metadata(path) {
-                if metadata.len() > self.config.max_file_size {
-                    return false;
-                }
-            }
+        if self.config.max_file_size > 0
+            && let Ok(metadata) = std::fs::metadata(path)
+            && metadata.len() > self.config.max_file_size
+        {
+            return false;
         }
 
         // If no extensions specified, scan all files
@@ -232,10 +231,10 @@ impl FileScanner {
         let path_str = path.to_string_lossy();
 
         for pattern in &self.config.exclude_patterns {
-            if let Ok(glob_pattern) = glob::Pattern::new(pattern) {
-                if glob_pattern.matches(&path_str) {
-                    return true;
-                }
+            if let Ok(glob_pattern) = glob::Pattern::new(pattern)
+                && glob_pattern.matches(&path_str)
+            {
+                return true;
             }
         }
 

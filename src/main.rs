@@ -4,7 +4,7 @@
 
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
-use tracing::{error, info, Level};
+use tracing::{Level, error, info};
 use tracing_subscriber::FmtSubscriber;
 
 use yara_edr::config::Config;
@@ -12,7 +12,7 @@ use yara_edr::daemon::{self, Daemon};
 use yara_edr::detection::{FileScanner, MemoryScanner};
 use yara_edr::engine::RuleManager;
 use yara_edr::response::QuarantineManager;
-use yara_edr::{Result, DEFAULT_CONFIG_PATH};
+use yara_edr::{DEFAULT_CONFIG_PATH, Result};
 
 /// YARA-EDR: Linux Endpoint Detection and Response Agent
 #[derive(Parser)]
@@ -134,7 +134,10 @@ async fn main() {
         .with_thread_ids(false)
         .finish();
 
-    tracing::subscriber::set_global_default(subscriber).expect("Failed to set tracing subscriber");
+    if let Err(e) = tracing::subscriber::set_global_default(subscriber) {
+        eprintln!("Failed to set tracing subscriber: {e}");
+        std::process::exit(1);
+    }
 
     // Run command
     if let Err(e) = run_command(cli).await {
@@ -198,7 +201,7 @@ async fn cmd_scan(
             continue;
         }
 
-        println!("Scanning: {:?}", path);
+        println!("Scanning: {path:?}");
 
         if path.is_file() {
             match file_scanner.scan_file(&path) {
@@ -208,10 +211,10 @@ async fn cmd_scan(
                         total_detections += 1;
                         print_scan_result(&result, format);
                     }
-                }
+                },
                 Err(e) => {
                     error!("Failed to scan {:?}: {}", path, e);
-                }
+                },
             }
         } else if path.is_dir() {
             match file_scanner.scan_directory(&path) {
@@ -223,17 +226,17 @@ async fn cmd_scan(
                             print_scan_result(&result, format);
                         }
                     }
-                }
+                },
                 Err(e) => {
                     error!("Failed to scan directory {:?}: {}", path, e);
-                }
+                },
             }
         }
     }
 
     println!("\n=== Scan Complete ===");
-    println!("Files scanned: {}", total_files);
-    println!("Detections: {}", total_detections);
+    println!("Files scanned: {total_files}");
+    println!("Detections: {total_detections}");
 
     Ok(())
 }
@@ -242,7 +245,7 @@ async fn cmd_scan(
 fn print_scan_result(result: &yara_edr::engine::ScanResult, format: &str) {
     if format == "json" {
         if let Ok(json) = serde_json::to_string_pretty(result) {
-            println!("{}", json);
+            println!("{json}");
         }
     } else {
         println!("\n[DETECTION] {}", result.target);
@@ -252,7 +255,7 @@ fn print_scan_result(result: &yara_edr::engine::ScanResult, format: &str) {
                 println!("    Tags: {}", m.tags.join(", "));
             }
             for (key, value) in &m.metadata {
-                println!("    {}: {}", key, value);
+                println!("    {key}: {value}");
             }
             if !m.strings.is_empty() {
                 println!("    Strings matched: {}", m.strings.len());
@@ -280,22 +283,22 @@ async fn cmd_scan_process(config_path: &PathBuf, pid: i32) -> Result<()> {
     let scanner = rule_manager.scanner();
     let memory_scanner = MemoryScanner::new(scanner, config.process_monitor.clone());
 
-    println!("Scanning process: PID {}", pid);
+    println!("Scanning process: PID {pid}");
 
     match memory_scanner.scan_process(pid) {
         Ok(result) => {
             if result.is_match {
-                println!("\n[DETECTION] PID {}", pid);
+                println!("\n[DETECTION] PID {pid}");
                 for m in &result.matches {
                     println!("  Rule: {} ({})", m.rule, m.namespace);
                 }
             } else {
-                println!("No threats detected in process {}", pid);
+                println!("No threats detected in process {pid}");
             }
-        }
+        },
         Err(e) => {
             error!("Failed to scan process {}: {}", pid, e);
-        }
+        },
     }
 
     Ok(())
@@ -316,7 +319,7 @@ async fn cmd_scan_all_processes(config_path: &PathBuf) -> Result<()> {
     println!("Scanning all running processes...");
 
     let summary = memory_scanner.scan_all_processes().await?;
-    println!("{}", summary);
+    println!("{summary}");
 
     Ok(())
 }
@@ -351,7 +354,7 @@ async fn cmd_start(config_path: &PathBuf, foreground: bool) -> Result<()> {
         info!("Received shutdown signal");
         daemon_for_signal.stop();
     })
-    .expect("Failed to set signal handler");
+    .map_err(|e| yara_edr::EdrError::Daemon(format!("Failed to set signal handler: {e}")))?;
 
     // Start daemon
     daemon_clone.start().await?;
@@ -407,7 +410,7 @@ fn cmd_reload(config_path: &PathBuf) -> Result<()> {
         nix::unistd::Pid::from_raw(pid),
         nix::sys::signal::Signal::SIGHUP,
     )
-    .map_err(|e| yara_edr::EdrError::Daemon(format!("Failed to send SIGHUP: {}", e)))?;
+    .map_err(|e| yara_edr::EdrError::Daemon(format!("Failed to send SIGHUP: {e}")))?;
 
     println!("Reload signal sent to daemon");
 
@@ -439,7 +442,7 @@ fn cmd_quarantine(config_path: &PathBuf, action: QuarantineAction) -> Result<()>
                     );
                 }
             }
-        }
+        },
 
         QuarantineAction::Restore { id } => {
             let uuid = uuid::Uuid::parse_str(&id)
@@ -447,8 +450,8 @@ fn cmd_quarantine(config_path: &PathBuf, action: QuarantineAction) -> Result<()>
 
             let mut quarantine = QuarantineManager::new(&config.response.quarantine_path)?;
             let path = quarantine.restore(uuid)?;
-            println!("File restored to: {:?}", path);
-        }
+            println!("File restored to: {path:?}");
+        },
 
         QuarantineAction::Delete { id } => {
             let uuid = uuid::Uuid::parse_str(&id)
@@ -457,14 +460,14 @@ fn cmd_quarantine(config_path: &PathBuf, action: QuarantineAction) -> Result<()>
             let mut quarantine = QuarantineManager::new(&config.response.quarantine_path)?;
             quarantine.delete(uuid)?;
             println!("Quarantined file deleted permanently");
-        }
+        },
 
         QuarantineAction::Stats => {
             println!("Quarantine Statistics:");
             println!("  Total files: {}", quarantine.count());
             println!("  Total size: {} bytes", quarantine.total_size());
             println!("  Location: {:?}", config.response.quarantine_path);
-        }
+        },
     }
 
     Ok(())
@@ -476,7 +479,7 @@ fn cmd_init_config(output: Option<PathBuf>) -> Result<()> {
     let output_path = output.unwrap_or_else(|| PathBuf::from("config.toml"));
 
     config.save(&output_path)?;
-    println!("Configuration file created: {:?}", output_path);
+    println!("Configuration file created: {output_path:?}");
 
     Ok(())
 }

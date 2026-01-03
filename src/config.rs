@@ -9,7 +9,7 @@ use tracing::{info, warn};
 use crate::{EdrError, Result};
 
 /// Main configuration structure
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
     #[serde(default)]
     pub general: GeneralConfig,
@@ -197,7 +197,7 @@ fn default_pid_file() -> PathBuf {
 
 fn default_workers() -> usize {
     std::thread::available_parallelism()
-        .map(|p| p.get())
+        .map(std::num::NonZero::get)
         .unwrap_or(4)
         .max(2)
 }
@@ -360,19 +360,6 @@ impl Default for AlertsConfig {
     }
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self {
-            general: GeneralConfig::default(),
-            rules: RulesConfig::default(),
-            file_monitor: FileMonitorConfig::default(),
-            process_monitor: ProcessMonitorConfig::default(),
-            response: ResponseConfig::default(),
-            alerts: AlertsConfig::default(),
-        }
-    }
-}
-
 impl Config {
     /// Load configuration from a TOML file
     pub fn load<P: AsRef<Path>>(path: P) -> Result<Self> {
@@ -384,10 +371,10 @@ impl Config {
         }
 
         let content = std::fs::read_to_string(path)
-            .map_err(|e| EdrError::Config(format!("Failed to read config file: {}", e)))?;
+            .map_err(|e| EdrError::Config(format!("Failed to read config file: {e}")))?;
 
         let config: Config = toml::from_str(&content)
-            .map_err(|e| EdrError::Config(format!("Failed to parse config file: {}", e)))?;
+            .map_err(|e| EdrError::Config(format!("Failed to parse config file: {e}")))?;
 
         config.validate()?;
 
@@ -395,10 +382,10 @@ impl Config {
         Ok(config)
     }
 
-    /// Load configuration from a string
-    pub fn from_str(content: &str) -> Result<Self> {
+    /// Parse configuration from a string
+    pub fn parse(content: &str) -> Result<Self> {
         let config: Config = toml::from_str(content)
-            .map_err(|e| EdrError::Config(format!("Failed to parse config: {}", e)))?;
+            .map_err(|e| EdrError::Config(format!("Failed to parse config: {e}")))?;
 
         config.validate()?;
         Ok(config)
@@ -439,7 +426,7 @@ impl Config {
     /// Save configuration to a TOML file
     pub fn save<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let content = toml::to_string_pretty(self)
-            .map_err(|e| EdrError::Config(format!("Failed to serialize config: {}", e)))?;
+            .map_err(|e| EdrError::Config(format!("Failed to serialize config: {e}")))?;
 
         std::fs::write(path, content)?;
         Ok(())
@@ -480,7 +467,7 @@ mod tests {
     }
 
     #[test]
-    fn test_config_from_str() {
+    fn test_config_parse() {
         let toml = r#"
             [general]
             log_level = "debug"
@@ -490,7 +477,7 @@ mod tests {
             watch_paths = ["/tmp"]
         "#;
 
-        let config = Config::from_str(toml).unwrap();
+        let config = Config::parse(toml).unwrap();
         assert_eq!(config.general.log_level, "debug");
         assert!(config.file_monitor.enabled);
     }
@@ -502,7 +489,7 @@ mod tests {
             log_level = "invalid"
         "#;
 
-        let result = Config::from_str(toml);
+        let result = Config::parse(toml);
         assert!(result.is_err());
     }
 }

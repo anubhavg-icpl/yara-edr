@@ -29,9 +29,9 @@ pub struct MemoryRegion {
 
 /// Get memory regions for a process
 pub fn get_process_memory_regions(pid: i32) -> Result<Vec<MemoryRegion>> {
-    let maps_path = format!("/proc/{}/maps", pid);
+    let maps_path = format!("/proc/{pid}/maps");
     let file = File::open(&maps_path)
-        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to open {}: {}", maps_path, e)))?;
+        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to open {maps_path}: {e}")))?;
 
     let reader = BufReader::new(file);
     let mut regions = Vec::new();
@@ -63,12 +63,12 @@ fn parse_maps_line(line: &str) -> Option<MemoryRegion> {
     let start = u64::from_str_radix(addr_parts[0], 16).ok()?;
     let end = u64::from_str_radix(addr_parts[1], 16).ok()?;
 
-    let permissions = parts.get(1).map(|s| s.to_string()).unwrap_or_default();
+    let permissions = parts.get(1).map(|s| (*s).to_string()).unwrap_or_default();
     let offset = parts
         .get(2)
         .and_then(|s| u64::from_str_radix(s, 16).ok())
         .unwrap_or(0);
-    let device = parts.get(3).map(|s| s.to_string()).unwrap_or_default();
+    let device = parts.get(3).map(|s| (*s).to_string()).unwrap_or_default();
     let inode = parts.get(4).and_then(|s| s.parse().ok()).unwrap_or(0);
 
     let pathname = if parts.len() > 5 {
@@ -90,16 +90,16 @@ fn parse_maps_line(line: &str) -> Option<MemoryRegion> {
 
 /// Read memory from a specific region
 pub fn read_memory_region(pid: i32, start: u64, size: usize) -> Result<Vec<u8>> {
-    let mem_path = format!("/proc/{}/mem", pid);
+    let mem_path = format!("/proc/{pid}/mem");
     let mut file = File::open(&mem_path)
-        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to open {}: {}", mem_path, e)))?;
+        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to open {mem_path}: {e}")))?;
 
     file.seek(SeekFrom::Start(start))
-        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to seek to 0x{:x}: {}", start, e)))?;
+        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to seek to 0x{start:x}: {e}")))?;
 
     let mut buffer = vec![0u8; size];
     let bytes_read = file.read(&mut buffer).map_err(|e| {
-        EdrError::ProcessMonitor(format!("Failed to read memory at 0x{:x}: {}", start, e))
+        EdrError::ProcessMonitor(format!("Failed to read memory at 0x{start:x}: {e}"))
     })?;
 
     buffer.truncate(bytes_read);
@@ -149,17 +149,17 @@ pub fn read_process_memory(pid: i32) -> Result<Vec<u8>> {
 
 /// Get process executable path
 pub fn get_process_exe(pid: i32) -> Result<PathBuf> {
-    let exe_path = format!("/proc/{}/exe", pid);
+    let exe_path = format!("/proc/{pid}/exe");
     fs::read_link(&exe_path).map_err(|e| {
-        EdrError::ProcessMonitor(format!("Failed to read exe link for PID {}: {}", pid, e))
+        EdrError::ProcessMonitor(format!("Failed to read exe link for PID {pid}: {e}"))
     })
 }
 
 /// Get process command line
 pub fn get_process_cmdline(pid: i32) -> Result<String> {
-    let cmdline_path = format!("/proc/{}/cmdline", pid);
+    let cmdline_path = format!("/proc/{pid}/cmdline");
     let content = fs::read(&cmdline_path).map_err(|e| {
-        EdrError::ProcessMonitor(format!("Failed to read cmdline for PID {}: {}", pid, e))
+        EdrError::ProcessMonitor(format!("Failed to read cmdline for PID {pid}: {e}"))
     })?;
 
     // Command line arguments are separated by null bytes
@@ -175,9 +175,9 @@ pub fn get_process_cmdline(pid: i32) -> Result<String> {
 
 /// Get process environment variables
 pub fn get_process_environ(pid: i32) -> Result<Vec<(String, String)>> {
-    let environ_path = format!("/proc/{}/environ", pid);
+    let environ_path = format!("/proc/{pid}/environ");
     let content = fs::read(&environ_path).map_err(|e| {
-        EdrError::ProcessMonitor(format!("Failed to read environ for PID {}: {}", pid, e))
+        EdrError::ProcessMonitor(format!("Failed to read environ for PID {pid}: {e}"))
     })?;
 
     let mut env_vars = Vec::new();
@@ -201,11 +201,11 @@ pub fn get_process_environ(pid: i32) -> Result<Vec<(String, String)>> {
 /// Get parent PID
 pub fn get_ppid(pid: i32) -> Result<i32> {
     let process = procfs::process::Process::new(pid)
-        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to get process {}: {}", pid, e)))?;
+        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to get process {pid}: {e}")))?;
 
     let stat = process
         .stat()
-        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to get stat for {}: {}", pid, e)))?;
+        .map_err(|e| EdrError::ProcessMonitor(format!("Failed to get stat for {pid}: {e}")))?;
 
     Ok(stat.ppid)
 }
@@ -219,12 +219,11 @@ pub fn get_child_pids(pid: i32) -> Result<Vec<i32>> {
         let file_name = entry.file_name();
         let name = file_name.to_string_lossy();
 
-        if let Ok(child_pid) = name.parse::<i32>() {
-            if let Ok(ppid) = get_ppid(child_pid) {
-                if ppid == pid {
-                    children.push(child_pid);
-                }
-            }
+        if let Ok(child_pid) = name.parse::<i32>()
+            && let Ok(ppid) = get_ppid(child_pid)
+            && ppid == pid
+        {
+            children.push(child_pid);
         }
     }
 
@@ -233,7 +232,7 @@ pub fn get_child_pids(pid: i32) -> Result<Vec<i32>> {
 
 /// Check if process is running
 pub fn is_process_running(pid: i32) -> bool {
-    PathBuf::from(format!("/proc/{}", pid)).exists()
+    PathBuf::from(format!("/proc/{pid}")).exists()
 }
 
 #[cfg(test)]

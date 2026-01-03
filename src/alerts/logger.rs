@@ -57,7 +57,7 @@ impl AlertLogger {
     /// Log a detection
     pub fn log_detection(&self, detection: &Detection) -> Result<()> {
         // Check severity threshold
-        let threshold = Severity::from_str(&self.config.severity_threshold);
+        let threshold = Severity::parse(&self.config.severity_threshold);
         if detection.severity < threshold {
             return Ok(());
         }
@@ -79,7 +79,7 @@ impl AlertLogger {
     /// Log an alert
     pub fn log_alert(&self, alert: &Alert) -> Result<()> {
         // Check severity threshold
-        let threshold = Severity::from_str(&self.config.severity_threshold);
+        let threshold = Severity::parse(&self.config.severity_threshold);
         if alert.severity < threshold {
             return Ok(());
         }
@@ -98,10 +98,10 @@ impl AlertLogger {
     fn write_to_file(&self, alert: &Alert) -> Result<()> {
         if let Some(writer) = &self.file_writer {
             let json = serde_json::to_string(alert)
-                .map_err(|e| EdrError::Config(format!("Failed to serialize alert: {}", e)))?;
+                .map_err(|e| EdrError::Config(format!("Failed to serialize alert: {e}")))?;
 
             let mut writer = writer.lock();
-            writeln!(writer, "{}", json)?;
+            writeln!(writer, "{json}")?;
             writer.flush()?;
         }
 
@@ -139,7 +139,7 @@ impl AlertLogger {
         if let Some(process) = &alert.process {
             println!("  Process: {} (PID: {})", process.name, process.pid);
             if let Some(cmdline) = &process.cmdline {
-                println!("  Command: {}", cmdline);
+                println!("  Command: {cmdline}");
             }
         }
 
@@ -174,7 +174,7 @@ impl AlertLogger {
 
         // Use the logger command to write to syslog
         let output = std::process::Command::new("logger")
-            .args(["-p", &format!("local0.{}", priority), &message])
+            .args(["-p", &format!("local0.{priority}"), &message])
             .output();
 
         if let Err(e) = output {
@@ -238,11 +238,11 @@ pub fn create_summary_report(detections: &[Detection]) -> String {
         .count();
 
     report.push_str("\nBy Severity:\n");
-    report.push_str(&format!("  Critical: {}\n", critical));
-    report.push_str(&format!("  High: {}\n", high));
-    report.push_str(&format!("  Medium: {}\n", medium));
-    report.push_str(&format!("  Low: {}\n", low));
-    report.push_str(&format!("  Info: {}\n", info));
+    report.push_str(&format!("  Critical: {critical}\n"));
+    report.push_str(&format!("  High: {high}\n"));
+    report.push_str(&format!("  Medium: {medium}\n"));
+    report.push_str(&format!("  Low: {low}\n"));
+    report.push_str(&format!("  Info: {info}\n"));
 
     // List detections
     if !detections.is_empty() {
@@ -273,7 +273,7 @@ mod tests {
 
     #[test]
     fn test_severity_threshold() {
-        let threshold = Severity::from_str("medium");
+        let threshold = Severity::parse("medium");
         assert!(Severity::Critical >= threshold);
         assert!(Severity::High >= threshold);
         assert!(Severity::Medium >= threshold);

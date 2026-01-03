@@ -91,7 +91,7 @@ impl QuarantineManager {
     /// Save quarantine metadata to disk
     fn save_metadata(&self) -> Result<()> {
         let content = serde_json::to_string_pretty(&self.entries)
-            .map_err(|e| EdrError::Response(format!("Failed to serialize metadata: {}", e)))?;
+            .map_err(|e| EdrError::Response(format!("Failed to serialize metadata: {e}")))?;
 
         fs::write(&self.metadata_file, content)?;
         debug!("Saved {} quarantine entries", self.entries.len());
@@ -104,7 +104,7 @@ impl QuarantineManager {
         let path = path.as_ref();
 
         if !path.exists() {
-            return Err(EdrError::Response(format!("File not found: {:?}", path)));
+            return Err(EdrError::Response(format!("File not found: {path:?}")));
         }
 
         // Get file metadata
@@ -119,7 +119,7 @@ impl QuarantineManager {
 
         // Generate unique ID and quarantine path
         let id = Uuid::new_v4();
-        let quarantine_path = self.quarantine_dir.join(format!("{}.quarantine", id));
+        let quarantine_path = self.quarantine_dir.join(format!("{id}.quarantine"));
 
         // Get original permissions and ownership
         use std::os::unix::fs::MetadataExt;
@@ -177,7 +177,7 @@ impl QuarantineManager {
 
         // Update in entries
         if let Some(existing) = self.entries.iter_mut().find(|e| e.id == entry.id) {
-            existing.detection_rule = entry.detection_rule.clone();
+            existing.detection_rule.clone_from(&entry.detection_rule);
         }
 
         self.save_metadata()?;
@@ -192,7 +192,7 @@ impl QuarantineManager {
             .iter()
             .find(|e| e.id == id)
             .cloned()
-            .ok_or_else(|| EdrError::Response(format!("Quarantine entry not found: {}", id)))?;
+            .ok_or_else(|| EdrError::Response(format!("Quarantine entry not found: {id}")))?;
 
         // Check if quarantine file exists
         if !entry.quarantine_path.exists() {
@@ -246,7 +246,7 @@ impl QuarantineManager {
             .iter()
             .find(|e| e.id == id)
             .cloned()
-            .ok_or_else(|| EdrError::Response(format!("Quarantine entry not found: {}", id)))?;
+            .ok_or_else(|| EdrError::Response(format!("Quarantine entry not found: {id}")))?;
 
         // Delete the quarantined file
         if entry.quarantine_path.exists() {
@@ -293,7 +293,7 @@ impl QuarantineManager {
 
     /// Clean old quarantine entries
     pub fn clean_old(&mut self, max_age_days: u32) -> Result<usize> {
-        let cutoff = chrono::Utc::now() - chrono::Duration::days(max_age_days as i64);
+        let cutoff = chrono::Utc::now() - chrono::Duration::days(i64::from(max_age_days));
         let mut removed = 0;
 
         let old_entries: Vec<Uuid> = self
@@ -332,7 +332,7 @@ mod md5 {
     impl std::fmt::LowerHex for Digest {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             for byte in &self.0 {
-                write!(f, "{:02x}", byte)?;
+                write!(f, "{byte:02x}")?;
             }
             Ok(())
         }

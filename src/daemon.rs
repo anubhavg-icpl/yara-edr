@@ -206,11 +206,10 @@ impl Daemon {
                         };
 
                         // Send detection after lock is released
-                        if let Some(detection) = detection_to_send {
-                            if let Err(e) = detection_tx.send(detection).await {
+                        if let Some(detection) = detection_to_send
+                            && let Err(e) = detection_tx.send(detection).await {
                                 error!("Failed to send detection: {}", e);
                             }
-                        }
                     }
                     _ = shutdown_rx.recv() => {
                         info!("Event processor shutting down");
@@ -328,10 +327,10 @@ impl Daemon {
 
     /// Remove PID file
     fn remove_pid_file(&self) {
-        if self.config.general.pid_file.exists() {
-            if let Err(e) = fs::remove_file(&self.config.general.pid_file) {
-                warn!("Failed to remove PID file: {}", e);
-            }
+        if self.config.general.pid_file.exists()
+            && let Err(e) = fs::remove_file(&self.config.general.pid_file)
+        {
+            warn!("Failed to remove PID file: {}", e);
         }
     }
 
@@ -361,7 +360,7 @@ impl Daemon {
                 .general
                 .log_file
                 .parent()
-                .map(|p| p.to_path_buf()),
+                .map(std::path::Path::to_path_buf),
         }
     }
 }
@@ -384,7 +383,7 @@ impl std::fmt::Display for DaemonStatus {
         writeln!(f, "  Rules loaded: {}", self.rules_loaded)?;
         writeln!(f, "  Rule files: {}", self.rule_files)?;
         if let Some(path) = &self.config_path {
-            writeln!(f, "  Config dir: {:?}", path)?;
+            writeln!(f, "  Config dir: {path:?}")?;
         }
         Ok(())
     }
@@ -399,11 +398,11 @@ pub fn is_daemon_running<P: AsRef<Path>>(pid_file: P) -> bool {
     }
 
     // Read PID from file
-    if let Ok(content) = fs::read_to_string(pid_file) {
-        if let Ok(pid) = content.trim().parse::<i32>() {
-            // Check if process is running
-            return crate::utils::process::is_process_running(pid);
-        }
+    if let Ok(content) = fs::read_to_string(pid_file)
+        && let Ok(pid) = content.trim().parse::<i32>()
+    {
+        // Check if process is running
+        return crate::utils::process::is_process_running(pid);
     }
 
     false
@@ -428,7 +427,7 @@ pub fn stop_daemon<P: AsRef<Path>>(pid_file: P) -> Result<()> {
         nix::unistd::Pid::from_raw(pid),
         nix::sys::signal::Signal::SIGTERM,
     )
-    .map_err(|e| EdrError::Daemon(format!("Failed to send SIGTERM: {}", e)))?;
+    .map_err(|e| EdrError::Daemon(format!("Failed to send SIGTERM: {e}")))?;
 
     info!("Sent SIGTERM to PID {}", pid);
 
@@ -443,7 +442,7 @@ pub fn daemonize() -> Result<()> {
 
     daemonize
         .start()
-        .map_err(|e| EdrError::Daemon(format!("Failed to daemonize: {}", e)))?;
+        .map_err(|e| EdrError::Daemon(format!("Failed to daemonize: {e}")))?;
 
     Ok(())
 }

@@ -118,7 +118,7 @@ impl Scanner {
         info!("Loading YARA rules from configured paths");
 
         let compiler = Compiler::new()
-            .map_err(|e| EdrError::Yara(format!("Failed to create YARA compiler: {}", e)))?;
+            .map_err(|e| EdrError::Yara(format!("Failed to create YARA compiler: {e}")))?;
 
         // Collect all rule files first
         let mut rule_files = Vec::new();
@@ -145,29 +145,31 @@ impl Scanner {
         let mut rules_loaded = 0;
 
         for path in &rule_files {
-            if compiler.is_none() {
+            let Some(current_compiler) = compiler.take() else {
                 error!("Compiler lost due to previous error, stopping rule loading");
                 break;
-            }
+            };
 
             match std::fs::read_to_string(path) {
                 Ok(content) => {
-                    match compiler.take().unwrap().add_rules_str(&content) {
+                    match current_compiler.add_rules_str(&content) {
                         Ok(new_compiler) => {
                             compiler = Some(new_compiler);
                             rules_loaded += 1;
                             debug!("Loaded rule file: {:?}", path);
-                        }
+                        },
                         Err(e) => {
                             error!("Failed to add rules from {:?}: {}", path, e);
                             // Compiler is lost on error, need to recreate
                             compiler = Compiler::new().ok();
-                        }
+                        },
                     }
-                }
+                },
                 Err(e) => {
                     error!("Failed to read rule file {:?}: {}", path, e);
-                }
+                    // Put the compiler back since we didn't use it
+                    compiler = Some(current_compiler);
+                },
             }
         }
 
@@ -178,7 +180,7 @@ impl Scanner {
 
         let rules = compiler
             .compile_rules()
-            .map_err(|e| EdrError::Yara(format!("Failed to compile YARA rules: {}", e)))?;
+            .map_err(|e| EdrError::Yara(format!("Failed to compile YARA rules: {e}")))?;
 
         let mut rules_guard = self.rules.write();
         *rules_guard = Some(rules);
@@ -192,10 +194,10 @@ impl Scanner {
             for entry in entries.flatten() {
                 let path = entry.path();
                 if path.is_file() {
-                    if let Some(ext) = path.extension() {
-                        if ext == "yar" || ext == "yara" {
-                            files.push(path);
-                        }
+                    if let Some(ext) = path.extension()
+                        && (ext == "yar" || ext == "yara")
+                    {
+                        files.push(path);
                     }
                 } else if path.is_dir() {
                     self.collect_rule_files(&path, files);
@@ -225,7 +227,7 @@ impl Scanner {
 
         let scan_results = rules
             .scan_file(path, self.config.scan_timeout as i32)
-            .map_err(|e| EdrError::Yara(format!("Failed to scan file {:?}: {}", path, e)))?;
+            .map_err(|e| EdrError::Yara(format!("Failed to scan file {path:?}: {e}")))?;
 
         let matches = self.convert_matches(&scan_results);
         let duration = start.elapsed();
@@ -264,7 +266,7 @@ impl Scanner {
 
         let scan_results = rules
             .scan_mem(data, self.config.scan_timeout as i32)
-            .map_err(|e| EdrError::Yara(format!("Failed to scan buffer: {}", e)))?;
+            .map_err(|e| EdrError::Yara(format!("Failed to scan buffer: {e}")))?;
 
         let matches = self.convert_matches(&scan_results);
         let duration = start.elapsed();
@@ -313,13 +315,13 @@ impl Scanner {
 
         let scan_results = rules
             .scan_mem(&memory_data, self.config.scan_timeout as i32)
-            .map_err(|e| EdrError::Yara(format!("Failed to scan process {}: {}", pid, e)))?;
+            .map_err(|e| EdrError::Yara(format!("Failed to scan process {pid}: {e}")))?;
 
         let matches = self.convert_matches(&scan_results);
         let duration = start.elapsed();
 
         let result = ScanResult {
-            target: format!("pid:{}", pid),
+            target: format!("pid:{pid}"),
             scan_type: ScanType::Process,
             matches: matches.clone(),
             duration_ms: duration.as_millis() as u64,
@@ -360,7 +362,7 @@ impl Scanner {
                     .map(|m| {
                         let value = match &m.value {
                             yara::MetadataValue::Integer(i) => i.to_string(),
-                            yara::MetadataValue::String(s) => s.to_string(),
+                            yara::MetadataValue::String(s) => (*s).to_string(),
                             yara::MetadataValue::Boolean(b) => b.to_string(),
                         };
                         (m.identifier.to_string(), value)
@@ -370,7 +372,7 @@ impl Scanner {
                 YaraMatch {
                     rule: rule.identifier.to_string(),
                     namespace: rule.namespace.to_string(),
-                    tags: rule.tags.iter().map(|t| t.to_string()).collect(),
+                    tags: rule.tags.iter().map(|t| (*t).to_string()).collect(),
                     metadata,
                     strings,
                 }
@@ -432,7 +434,7 @@ mod md5 {
     impl std::fmt::LowerHex for Digest {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             for byte in &self.0 {
-                write!(f, "{:02x}", byte)?;
+                write!(f, "{byte:02x}")?;
             }
             Ok(())
         }

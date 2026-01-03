@@ -39,7 +39,7 @@ impl FileMonitor {
     /// Create a new file monitor
     pub fn new(config: FileMonitorConfig) -> Result<Self> {
         let inotify = Inotify::init()
-            .map_err(|e| EdrError::FileMonitor(format!("Failed to initialize inotify: {}", e)))?;
+            .map_err(|e| EdrError::FileMonitor(format!("Failed to initialize inotify: {e}")))?;
 
         Ok(Self {
             inotify,
@@ -81,8 +81,7 @@ impl FileMonitor {
 
         if !path.exists() {
             return Err(EdrError::FileMonitor(format!(
-                "Path does not exist: {:?}",
-                path
+                "Path does not exist: {path:?}"
             )));
         }
 
@@ -98,9 +97,10 @@ impl FileMonitor {
             | WatchMask::MOVED_FROM
             | WatchMask::MOVED_TO;
 
-        let wd = self.inotify.watches().add(path, mask).map_err(|e| {
-            EdrError::FileMonitor(format!("Failed to add watch on {:?}: {}", path, e))
-        })?;
+        let wd =
+            self.inotify.watches().add(path, mask).map_err(|e| {
+                EdrError::FileMonitor(format!("Failed to add watch on {path:?}: {e}"))
+            })?;
 
         let path_buf = path.to_path_buf();
         self.watches.write().insert(wd.clone(), path_buf.clone());
@@ -152,10 +152,10 @@ impl FileMonitor {
         let path_str = path.to_string_lossy();
 
         for pattern in &self.config.exclude_patterns {
-            if let Ok(glob_pattern) = glob::Pattern::new(pattern) {
-                if glob_pattern.matches(&path_str) {
-                    return true;
-                }
+            if let Ok(glob_pattern) = glob::Pattern::new(pattern)
+                && glob_pattern.matches(&path_str)
+            {
+                return true;
             }
         }
 
@@ -170,13 +170,12 @@ impl FileMonitor {
         }
 
         // Check file size
-        if self.config.max_file_size > 0 {
-            if let Ok(metadata) = std::fs::metadata(path) {
-                if metadata.len() > self.config.max_file_size {
-                    debug!("Skipping large file: {:?}", path);
-                    return false;
-                }
-            }
+        if self.config.max_file_size > 0
+            && let Ok(metadata) = std::fs::metadata(path)
+            && metadata.len() > self.config.max_file_size
+        {
+            debug!("Skipping large file: {:?}", path);
+            return false;
         }
 
         // If no extensions specified, scan all files
@@ -203,10 +202,10 @@ impl FileMonitor {
 
         let mut last_events = self.last_events.write();
 
-        if let Some(last_time) = last_events.get(path) {
-            if last_time.elapsed() < debounce_duration {
-                return false; // Still within debounce period
-            }
+        if let Some(last_time) = last_events.get(path)
+            && last_time.elapsed() < debounce_duration
+        {
+            return false; // Still within debounce period
         }
 
         last_events.insert(path.to_path_buf(), Instant::now());
@@ -314,10 +313,10 @@ impl FileMonitor {
         };
 
         // Send event through channel
-        if let (Some(event), Some(tx)) = (monitor_event, &self.event_tx) {
-            if let Err(e) = tx.send(event).await {
-                error!("Failed to send file event: {}", e);
-            }
+        if let (Some(event), Some(tx)) = (monitor_event, &self.event_tx)
+            && let Err(e) = tx.send(event).await
+        {
+            error!("Failed to send file event: {}", e);
         }
     }
 

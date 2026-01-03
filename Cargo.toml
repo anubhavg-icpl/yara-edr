@@ -2,7 +2,7 @@
 name = "yara-edr"
 version = "0.1.0"
 edition = "2024"
-authors = ["Anubhav"]
+authors = ["Anubhav Gain <anubhavg@infopercept.com>"]
 description = "A YARA-powered Endpoint Detection and Response agent for Linux"
 license = "MIT"
 keywords = ["security", "edr", "yara", "malware", "detection"]
@@ -86,3 +86,59 @@ strip = true
 [[bin]]
 name = "yara-edr"
 path = "src/main.rs"
+
+# Lint configuration
+[lints.rust]
+unsafe_code = "warn"
+# missing_docs = "warn"  # Disabled until comprehensive docs are added
+
+[lints.clippy]
+# Correctness - must fix
+correctness = { level = "deny", priority = -1 }
+
+# Suspicious code patterns
+suspicious = { level = "warn", priority = -1 }
+
+# Complexity warnings
+complexity = { level = "warn", priority = -1 }
+
+# Performance suggestions
+perf = { level = "warn", priority = -1 }
+
+# Style consistency
+style = { level = "warn", priority = -1 }
+
+# Pedantic lints (selective)
+pedantic = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+module_name_repetitions = "allow"
+
+# Allow common patterns in this codebase
+similar_names = "allow"                 # uid/gid, etc. are intentionally similar
+struct_excessive_bools = "allow"        # config structs have multiple bool flags
+cast_possible_truncation = "allow"      # controlled casts in low-level code
+cast_sign_loss = "allow"                # pid/uid casts are safe on Linux
+cast_precision_loss = "allow"           # duration casts are acceptable
+unnecessary_wraps = "allow"             # Result returns for consistency
+clone_on_ref_ptr = "allow"              # .clone() on Arc is idiomatic
+only_used_in_recursion = "allow"        # recursive methods using &self
+trivially_copy_pass_by_ref = "allow"    # keep API consistency
+return_self_not_must_use = "allow"      # builder patterns
+format_push_string = "allow"            # readability over micro-optimization
+unused_self = "allow"                   # keeps API consistent for methods
+items_after_statements = "allow"        # local modules are fine
+bool_to_int_with_if = "allow"           # explicit is clearer
+unnecessary_debug_formatting = "allow"  # Debug for paths in errors is fine
+match_same_arms = "allow"               # explicit match arms for future changes
+field_reassign_with_default = "allow"   # struct builder pattern
+unused_async = "allow"                  # async for API consistency
+assigning_clones = "allow"              # clone readability
+
+# Security-focused lints
+unwrap_used = "warn"
+expect_used = "warn"
+panic = "warn"
+dbg_macro = "warn"
+todo = "warn"

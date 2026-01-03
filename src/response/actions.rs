@@ -2,15 +2,15 @@
 //!
 //! Implements response actions for detected threats.
 
-use nix::sys::signal::{kill, Signal};
+use nix::sys::signal::{Signal, kill};
 use nix::unistd::Pid;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tracing::{error, info, warn};
 
+use crate::Result;
 use crate::config::ResponseConfig;
 use crate::detection::Detection;
-use crate::Result;
 
 use super::QuarantineManager;
 
@@ -99,7 +99,7 @@ impl ResponseExecutor {
                     ResponseAction::BlockNetwork { pid },
                     "Not implemented".to_string(),
                 )
-            }
+            },
         }
     }
 
@@ -119,11 +119,11 @@ impl ResponseExecutor {
         }
 
         // Check if auto-kill is enabled
-        if self.config.auto_kill {
-            if let Some(context) = &detection.process_context {
-                let action = ResponseAction::KillProcess { pid: context.pid };
-                results.push(self.execute(action));
-            }
+        if self.config.auto_kill
+            && let Some(context) = &detection.process_context
+        {
+            let action = ResponseAction::KillProcess { pid: context.pid };
+            results.push(self.execute(action));
         }
 
         results
@@ -141,11 +141,11 @@ impl ResponseExecutor {
                     path, entry.quarantine_path
                 );
                 ActionResult::success(action)
-            }
+            },
             Err(e) => {
                 error!("Failed to quarantine file {:?}: {}", path, e);
                 ActionResult::failure(action, e.to_string())
-            }
+            },
         }
     }
 
@@ -163,14 +163,14 @@ impl ResponseExecutor {
         }
 
         match std::fs::remove_file(path) {
-            Ok(_) => {
+            Ok(()) => {
                 info!("File deleted: {:?}", path);
                 ActionResult::success(action)
-            }
+            },
             Err(e) => {
                 error!("Failed to delete file {:?}: {}", path, e);
                 ActionResult::failure(action, e.to_string())
-            }
+            },
         }
     }
 
@@ -186,14 +186,14 @@ impl ResponseExecutor {
         }
 
         match kill(Pid::from_raw(pid), Signal::SIGKILL) {
-            Ok(_) => {
+            Ok(()) => {
                 info!("Process killed: PID {}", pid);
                 ActionResult::success(action)
-            }
+            },
             Err(e) => {
                 error!("Failed to kill process {}: {}", pid, e);
                 ActionResult::failure(action, e.to_string())
-            }
+            },
         }
     }
 
@@ -208,14 +208,14 @@ impl ResponseExecutor {
         }
 
         match kill(Pid::from_raw(pid), Signal::SIGSTOP) {
-            Ok(_) => {
+            Ok(()) => {
                 info!("Process suspended: PID {}", pid);
                 ActionResult::success(action)
-            }
+            },
             Err(e) => {
                 error!("Failed to suspend process {}: {}", pid, e);
                 ActionResult::failure(action, e.to_string())
-            }
+            },
         }
     }
 
@@ -255,12 +255,12 @@ impl ResponseExecutor {
         }
 
         // Check if it's a system process
-        if let Ok(process) = procfs::process::Process::new(pid) {
-            if let Ok(stat) = process.stat() {
-                let protected_names = ["systemd", "init", "kernel", "kthreadd"];
-                if protected_names.contains(&stat.comm.as_str()) {
-                    return true;
-                }
+        if let Ok(process) = procfs::process::Process::new(pid)
+            && let Ok(stat) = process.stat()
+        {
+            let protected_names = ["systemd", "init", "kernel", "kthreadd"];
+            if protected_names.contains(&stat.comm.as_str()) {
+                return true;
             }
         }
 
@@ -277,10 +277,10 @@ impl ResponseExecutor {
         }
 
         // Check process context for exe path
-        if let Some(context) = &detection.process_context {
-            if let Some(exe_path) = &context.exe_path {
-                return Some(exe_path.to_str().unwrap_or(""));
-            }
+        if let Some(context) = &detection.process_context
+            && let Some(exe_path) = &context.exe_path
+        {
+            return Some(exe_path.to_str().unwrap_or(""));
         }
 
         None

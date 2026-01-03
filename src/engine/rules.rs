@@ -92,14 +92,12 @@ impl RuleManager {
         path: &Path,
     ) -> Result<()> {
         if path.is_file() {
-            if let Some(ext) = path.extension() {
-                if ext == "yar" || ext == "yara" {
-                    if let Ok(metadata) = std::fs::metadata(path) {
-                        if let Ok(mtime) = metadata.modified() {
-                            mtimes.insert(path.to_path_buf(), mtime);
-                        }
-                    }
-                }
+            if let Some(ext) = path.extension()
+                && (ext == "yar" || ext == "yara")
+                && let Ok(metadata) = std::fs::metadata(path)
+                && let Ok(mtime) = metadata.modified()
+            {
+                mtimes.insert(path.to_path_buf(), mtime);
             }
         } else if path.is_dir() {
             for entry in std::fs::read_dir(path)?.flatten() {
@@ -121,11 +119,10 @@ impl RuleManager {
                 match result {
                     Ok(event) => {
                         // Check if any YARA files changed
-                        let yara_changed = event.paths.iter().any(|p| {
-                            p.extension()
-                                .map(|e| e == "yar" || e == "yara")
-                                .unwrap_or(false)
-                        });
+                        let yara_changed = event
+                            .paths
+                            .iter()
+                            .any(|p| p.extension().is_some_and(|e| e == "yar" || e == "yara"));
 
                         if yara_changed {
                             info!("YARA rules changed, reloading...");
@@ -135,21 +132,21 @@ impl RuleManager {
                                 error!("Failed to reload rules: {}", e);
                             }
                         }
-                    }
+                    },
                     Err(e) => {
                         error!("File watcher error: {}", e);
-                    }
+                    },
                 }
             },
         )
-        .map_err(|e| EdrError::Config(format!("Failed to create file watcher: {}", e)))?;
+        .map_err(|e| EdrError::Config(format!("Failed to create file watcher: {e}")))?;
 
         // Watch all rule directories
         for path in &self.config.paths {
             if path.exists() && path.is_dir() {
-                watcher.watch(path, RecursiveMode::Recursive).map_err(|e| {
-                    EdrError::Config(format!("Failed to watch path {:?}: {}", path, e))
-                })?;
+                watcher
+                    .watch(path, RecursiveMode::Recursive)
+                    .map_err(|e| EdrError::Config(format!("Failed to watch path {path:?}: {e}")))?;
                 debug!("Watching {:?} for rule changes", path);
             }
         }
@@ -192,21 +189,19 @@ impl RuleManager {
         path: &Path,
     ) -> bool {
         if path.is_file() {
-            if let Some(ext) = path.extension() {
-                if ext == "yar" || ext == "yara" {
-                    if let Ok(metadata) = std::fs::metadata(path) {
-                        if let Ok(mtime) = metadata.modified() {
-                            return current_mtimes.get(path) != Some(&mtime);
-                        }
-                    }
-                }
+            if let Some(ext) = path.extension()
+                && (ext == "yar" || ext == "yara")
+                && let Ok(metadata) = std::fs::metadata(path)
+                && let Ok(mtime) = metadata.modified()
+            {
+                return current_mtimes.get(path) != Some(&mtime);
             }
-        } else if path.is_dir() {
-            if let Ok(entries) = std::fs::read_dir(path) {
-                for entry in entries.flatten() {
-                    if self.check_path_changed(current_mtimes, &entry.path()) {
-                        return true;
-                    }
+        } else if path.is_dir()
+            && let Ok(entries) = std::fs::read_dir(path)
+        {
+            for entry in entries.flatten() {
+                if self.check_path_changed(current_mtimes, &entry.path()) {
+                    return true;
                 }
             }
         }
@@ -275,7 +270,7 @@ impl std::fmt::Display for RuleStats {
         writeln!(f, "  Auto-reload: {}", self.auto_reload)?;
         writeln!(f, "  Rule paths:")?;
         for path in &self.paths {
-            writeln!(f, "    - {:?}", path)?;
+            writeln!(f, "    - {path:?}")?;
         }
         Ok(())
     }

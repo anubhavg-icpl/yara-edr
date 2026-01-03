@@ -232,10 +232,7 @@ impl ProcessMonitor {
         event.populate_from_proc();
 
         if event.name.is_empty() {
-            return Err(EdrError::ProcessMonitor(format!(
-                "Process {} not found",
-                pid
-            )));
+            return Err(EdrError::ProcessMonitor(format!("Process {pid} not found")));
         }
 
         Ok(event)

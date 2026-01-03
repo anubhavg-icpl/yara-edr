@@ -44,7 +44,7 @@ pub enum Severity {
 
 impl Severity {
     /// Parse severity from string
-    pub fn from_str(s: &str) -> Self {
+    pub fn parse(s: &str) -> Self {
         match s.to_lowercase().as_str() {
             "critical" => Severity::Critical,
             "high" => Severity::High,
@@ -146,7 +146,7 @@ impl Detection {
         for yara_match in &scan_result.matches {
             for (key, value) in &yara_match.metadata {
                 if key.to_lowercase() == "severity" {
-                    let severity = Severity::from_str(value);
+                    let severity = Severity::parse(value);
                     if severity > max_severity {
                         max_severity = severity;
                     }
@@ -163,10 +163,10 @@ impl Detection {
                 if Severity::High > max_severity {
                     max_severity = Severity::High;
                 }
-            } else if rule_lower.contains("suspicious") || rule_lower.contains("packed") {
-                if Severity::Medium > max_severity {
-                    max_severity = Severity::Medium;
-                }
+            } else if (rule_lower.contains("suspicious") || rule_lower.contains("packed"))
+                && Severity::Medium > max_severity
+            {
+                max_severity = Severity::Medium;
             }
         }
 
@@ -186,18 +186,18 @@ impl Detection {
             Severity::Critical => {
                 actions.push(RecommendedAction::Quarantine);
                 actions.push(RecommendedAction::KillProcess);
-            }
+            },
             Severity::High => {
                 actions.push(RecommendedAction::Quarantine);
                 actions.push(RecommendedAction::ManualReview);
-            }
+            },
             Severity::Medium => {
                 actions.push(RecommendedAction::AlertOnly);
                 actions.push(RecommendedAction::ManualReview);
-            }
+            },
             Severity::Low | Severity::Info => {
                 actions.push(RecommendedAction::AlertOnly);
-            }
+            },
         }
 
         actions
@@ -227,9 +227,9 @@ mod tests {
     }
 
     #[test]
-    fn test_severity_from_str() {
-        assert_eq!(Severity::from_str("critical"), Severity::Critical);
-        assert_eq!(Severity::from_str("HIGH"), Severity::High);
-        assert_eq!(Severity::from_str("unknown"), Severity::Info);
+    fn test_severity_parse() {
+        assert_eq!(Severity::parse("critical"), Severity::Critical);
+        assert_eq!(Severity::parse("HIGH"), Severity::High);
+        assert_eq!(Severity::parse("unknown"), Severity::Info);
     }
 }

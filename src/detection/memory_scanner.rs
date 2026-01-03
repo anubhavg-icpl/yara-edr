@@ -43,19 +43,18 @@ impl MemoryScanner {
     pub fn scan_process(&self, pid: i32) -> Result<ScanResult> {
         // Check exclusions
         if self.config.exclude_pids.contains(&pid) {
-            return Err(EdrError::Scan(format!("Process {} is excluded", pid)));
+            return Err(EdrError::Scan(format!("Process {pid} is excluded")));
         }
 
         // Get process name for exclusion check
-        if let Ok(process) = procfs::process::Process::new(pid) {
-            if let Ok(stat) = process.stat() {
-                if self.config.exclude_names.contains(&stat.comm) {
-                    return Err(EdrError::Scan(format!(
-                        "Process {} ({}) is excluded by name",
-                        pid, stat.comm
-                    )));
-                }
-            }
+        if let Ok(process) = procfs::process::Process::new(pid)
+            && let Ok(stat) = process.stat()
+            && self.config.exclude_names.contains(&stat.comm)
+        {
+            return Err(EdrError::Scan(format!(
+                "Process {} ({}) is excluded by name",
+                pid, stat.comm
+            )));
         }
 
         // Scan process using the scanner
@@ -82,10 +81,10 @@ impl MemoryScanner {
             }
 
             // Send detection
-            if let Some(tx) = &self.detection_tx {
-                if let Err(e) = tx.send(detection.clone()).await {
-                    error!("Failed to send detection: {}", e);
-                }
+            if let Some(tx) = &self.detection_tx
+                && let Err(e) = tx.send(detection.clone()).await
+            {
+                error!("Failed to send detection: {}", e);
             }
 
             return Ok(Some(detection));
@@ -159,14 +158,14 @@ impl MemoryScanner {
                             Severity::Low => summary.low += 1,
                             Severity::Info => summary.info += 1,
                         }
-                    }
+                    },
                     Ok(None) => {
                         // No detection
-                    }
+                    },
                     Err(e) => {
                         debug!("Failed to scan process {}: {}", pid, e);
                         summary.scan_errors += 1;
-                    }
+                    },
                 }
             }
         }
@@ -208,13 +207,13 @@ impl MemoryScanner {
                         pathname: region.pathname.clone(),
                         scan_result,
                     });
-                }
+                },
                 Err(e) => {
                     debug!(
                         "Failed to read memory region 0x{:x}-0x{:x}: {}",
                         region.start, region.end, e
                     );
-                }
+                },
             }
         }
 
