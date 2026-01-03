@@ -1,5 +1,7 @@
 //! Integration tests for file scanning.
 
+#![allow(clippy::unwrap_used)]
+
 use std::fs;
 use tempfile::TempDir;
 use yara_edr::config::RulesConfig;
@@ -43,7 +45,7 @@ fn test_scan_eicar_file() {
     };
 
     // Create scanner and load rules
-    let mut scanner = Scanner::new(config);
+    let scanner = Scanner::new(config);
     scanner.load_rules().unwrap();
 
     // Scan the file
@@ -77,7 +79,7 @@ fn test_scan_clean_file() {
     };
 
     // Create scanner and load rules
-    let mut scanner = Scanner::new(config);
+    let scanner = Scanner::new(config);
     scanner.load_rules().unwrap();
 
     // Scan the file
@@ -106,7 +108,7 @@ fn test_scan_buffer() {
     };
 
     // Create scanner and load rules
-    let mut scanner = Scanner::new(config);
+    let scanner = Scanner::new(config);
     scanner.load_rules().unwrap();
 
     // Scan EICAR content as buffer

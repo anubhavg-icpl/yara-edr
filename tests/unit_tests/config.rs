@@ -1,5 +1,7 @@
 //! Unit tests for configuration module.
 
+#![allow(clippy::unwrap_used)]
+
 use yara_edr::Config;
 
 #[test]

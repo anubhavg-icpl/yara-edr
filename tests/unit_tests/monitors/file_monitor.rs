@@ -1,5 +1,7 @@
 //! Unit tests for file monitor.
 
+#![allow(clippy::unwrap_used)]
+
 use std::path::Path;
 use yara_edr::config::FileMonitorConfig;
 use yara_edr::monitors::FileMonitor;

@@ -1,5 +1,8 @@
 //! Common test utilities and fixtures for yara-edr tests.
 
+#![allow(dead_code)]
+#![allow(clippy::expect_used)]
+
 use std::path::PathBuf;
 use tempfile::TempDir;
 

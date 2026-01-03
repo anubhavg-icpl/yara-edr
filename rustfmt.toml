@@ -1,4 +1,5 @@
-# rustfmt configuration for yara-edr (stable options only)
+# rustfmt configuration for yara-edr
+# Following Rust Coding Standards v1.0
 edition = "2024"
 max_width = 100
 tab_spaces = 4
@@ -16,6 +17,7 @@ fn_params_layout = "Tall"
 match_arm_leading_pipes = "Never"
 match_block_trailing_comma = true
 
-# Other stable options
+# Formatting options (stable)
 use_field_init_shorthand = true
 use_try_shorthand = true
+force_explicit_abi = true

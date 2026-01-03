@@ -1,5 +1,7 @@
 //! Unit tests for response actions.
 
+#![allow(clippy::unwrap_used)]
+
 use std::path::Path;
 use yara_edr::config::ResponseConfig;
 use yara_edr::response::ResponseExecutor;

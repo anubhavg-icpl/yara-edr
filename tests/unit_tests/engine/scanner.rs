@@ -1,5 +1,7 @@
 //! Unit tests for YARA scanner.
 
+#![allow(clippy::unwrap_used)]
+
 use yara_edr::engine::{ScanResult, ScanType};
 
 #[test]

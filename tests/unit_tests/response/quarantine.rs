@@ -1,5 +1,7 @@
 //! Unit tests for quarantine manager.
 
+#![allow(clippy::unwrap_used)]
+
 use std::fs;
 use tempfile::TempDir;
 use yara_edr::response::QuarantineManager;

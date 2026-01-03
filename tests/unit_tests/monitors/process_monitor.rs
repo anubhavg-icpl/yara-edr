@@ -1,5 +1,7 @@
 //! Unit tests for process monitor.
 
+#![allow(clippy::cast_possible_wrap)]
+
 use yara_edr::config::ProcessMonitorConfig;
 use yara_edr::monitors::{ProcessEvent, ProcessMonitor};
 
